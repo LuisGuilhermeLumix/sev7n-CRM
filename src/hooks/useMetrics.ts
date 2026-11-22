@@ -20,8 +20,7 @@ import {
   calcSomaTotalOrderPaid,
   calcComissaoLumix,
 } from '@/lib/metrics'
-
-const TABLE = 'oneclick_info_br_CRM'
+import { CRM_TABLE } from '@/lib/tables'
 
 export interface DashboardMetrics {
   leadsTotal: number
@@ -57,7 +56,7 @@ const zero: DashboardMetrics = {
 }
 
 export function useMetrics() {
-  const { dateFrom, dateTo, product } = useFilters()
+  const { dateFrom, dateTo, kit } = useFilters()
   const [metrics, setMetrics] = useState<DashboardMetrics>(zero)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,16 +71,14 @@ export function useMetrics() {
         const from = startOfDayUTC(dateFrom)
         const to = endOfDayUTC(dateTo)
 
-        const productFilter = product && product !== 'Todos' ? product : null
-
         const rows = await fetchAllPaged<CRMRow>((fromIdx, toIdx) => {
           let q = supabase
-            .from(TABLE)
-            .select('"Event", utm_source, status, "($)"')
+            .from(CRM_TABLE)
+            .select('"Event", utm_source, status, "($)", upsell')
             .gte('created_at', from)
             .lte('created_at', to)
             .order('created_at', { ascending: true })
-          if (productFilter) q = q.eq('product', productFilter)
+          if (kit !== 'Todos') q = q.eq('kit', kit)
           return q.range(fromIdx, toIdx)
         })
 
@@ -131,7 +128,7 @@ export function useMetrics() {
     return () => {
       cancelled = true
     }
-  }, [dateFrom, dateTo, product])
+  }, [dateFrom, dateTo, kit])
 
   return { metrics, loading, error }
 }

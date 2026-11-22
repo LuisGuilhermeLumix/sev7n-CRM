@@ -4,8 +4,7 @@ import { useFilters } from './useFilters'
 import { startOfDayUTC, endOfDayUTC, utcToLocalDateStr, getDaysInRange } from '@/lib/dates'
 import { getLeadOrigin } from '@/lib/events'
 import { parseNum } from '@/lib/metrics'
-
-const TABLE = 'oneclick_info_br_CRM'
+import { CRM_TABLE } from '@/lib/tables'
 
 export interface ChartPoint {
   date: string
@@ -22,7 +21,7 @@ function emptyPoint(date: string): ChartPoint {
 }
 
 export function useChartData() {
-  const { dateFrom, dateTo, product } = useFilters()
+  const { dateFrom, dateTo, kit } = useFilters()
   const [data, setData] = useState<ChartPoint[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -33,15 +32,16 @@ export function useChartData() {
         const rows = await fetchAllPaged<{ created_at: string; utm_source: string | null; '($)': any }>(
           (fromIdx, toIdx) => {
             let q = supabase
-              .from(TABLE)
+              .from(CRM_TABLE)
               .select('created_at, utm_source, "($)"')
               .gte('created_at', startOfDayUTC(dateFrom))
               .lte('created_at', endOfDayUTC(dateTo))
               .eq('Event', 'order_paid')
               .like('utm_source', '%WPP%')
+              .eq('upsell', false)
               .order('created_at', { ascending: true })
 
-            if (product && product !== 'Todos') q = q.eq('product', product)
+            if (kit !== 'Todos') q = q.eq('kit', kit)
 
             return q.range(fromIdx, toIdx)
           },
@@ -74,7 +74,7 @@ export function useChartData() {
       }
     }
     load()
-  }, [dateFrom, dateTo, product])
+  }, [dateFrom, dateTo, kit])
 
   return { data, loading }
 }

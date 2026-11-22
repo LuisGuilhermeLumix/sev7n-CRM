@@ -3,12 +3,14 @@ import { todayStr, daysAgoStr, firstOfMonthStr } from '@/lib/dates'
 
 export type RangeKey = 'hoje' | 'ontem' | '7d' | 'mes' | 'custom'
 
+export type KitFilter = 'Todos' | 'Kit 1' | 'Kit 2' | 'Kit 3'
+
 interface FiltersState {
   dateFrom: string
   dateTo: string
-  product: string
+  kit: KitFilter
   activeRange: RangeKey
-  setProduct: (v: string) => void
+  setKit: (v: KitFilter) => void
   setRange: (key: Exclude<RangeKey, 'custom'>) => void
   applyCustom: (from: string, to: string) => void
 }
@@ -16,10 +18,10 @@ interface FiltersState {
 export const useFilters = create<FiltersState>((set) => ({
   dateFrom: firstOfMonthStr(),
   dateTo: todayStr(),
-  product: 'Todos',
+  kit: 'Todos',
   activeRange: 'mes',
 
-  setProduct: (v) => set({ product: v }),
+  setKit: (v) => set({ kit: v }),
 
   applyCustom: (from, to) =>
     set({

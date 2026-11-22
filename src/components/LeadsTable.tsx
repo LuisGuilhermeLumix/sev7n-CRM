@@ -10,7 +10,7 @@ export function LeadsTable() {
 
   const { rows: pageData, totalPages, loading } = useLeads(search, page);
 
-  const headers = ["Data", "Nome", "Telefone", "Email", "Produto", "Canal", "Valor"];
+  const headers = ["Data", "Nome", "Telefone", "Email", "Kit", "Canal", "Valor"];
   const colCount = headers.length;
 
   return (
@@ -97,7 +97,7 @@ export function LeadsTable() {
               </div>
               <div className="text-xs text-[#888] font-mono truncate">{lead.number}</div>
               <div className="text-xs text-[#888] truncate">{lead.email}</div>
-              <div className="text-xs text-[#666] truncate">{lead.product}</div>
+              <div className="text-xs text-[#666] truncate">{lead.kit}</div>
               <div className="flex items-center justify-between pt-1">
                 <span className="text-[11px] text-[#555]">{formatDateLong(lead.date)}</span>
                 <span className="text-[13px] font-semibold text-white">
@@ -139,7 +139,7 @@ function LeadRowItem({ lead }: { lead: LeadRow }) {
       <td className="px-4 py-3.5 text-[#ddd]">{lead.name}</td>
       <td className="px-4 py-3.5 text-[#aaa] font-mono text-xs">{lead.number}</td>
       <td className="px-4 py-3.5 text-[#ddd]">{lead.email}</td>
-      <td className="px-4 py-3.5 text-[#aaa]">{lead.product}</td>
+      <td className="px-4 py-3.5 text-[#aaa]">{lead.kit}</td>
       <td className="px-4 py-3.5">
         <OriginBadge utm_source={lead.utm_source} />
       </td>

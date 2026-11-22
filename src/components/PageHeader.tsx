@@ -1,7 +1,6 @@
 import { Calendar, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
-import { useFilters } from "@/hooks/useFilters";
-import { useProducts } from "@/hooks/useProducts";
+import { useFilters, KitFilter } from "@/hooks/useFilters";
 
 interface PageHeaderProps {
   title: string;
@@ -15,19 +14,26 @@ const QUICK_RANGES = [
   { key: 'mes',   label: 'Este mês' },
 ] as const;
 
+const KIT_OPTIONS: { value: KitFilter; label: string }[] = [
+  { value: 'Todos', label: 'Todos' },
+  { value: 'Kit 1', label: 'Kit 1 — R$ 197' },
+  { value: 'Kit 2', label: 'Kit 2 — R$ 247' },
+  { value: 'Kit 3', label: 'Kit 3 — R$ 297' },
+];
+
 export function PageHeader({ title, showFilters = true }: PageHeaderProps) {
   const {
     dateFrom,
     dateTo,
-    product,
+    kit,
     activeRange,
-    setProduct,
+    setKit,
     setRange,
     applyCustom,
   } = useFilters();
-  const { products } = useProducts();
 
-  const [productOpen, setProductOpen] = useState(false);
+  const [kitOpen, setKitOpen] = useState(false);
+  const currentKitLabel = KIT_OPTIONS.find((o) => o.value === kit)?.label ?? kit;
   const [customOpen, setCustomOpen] = useState(false);
   const [customFrom, setCustomFrom] = useState(dateFrom);
   const [customTo, setCustomTo] = useState(dateTo);
@@ -107,35 +113,25 @@ export function PageHeader({ title, showFilters = true }: PageHeaderProps) {
 
       <div className="relative">
         <button
-          onClick={() => setProductOpen((v) => !v)}
+          onClick={() => setKitOpen((v) => !v)}
           className="h-9 flex items-center gap-2 px-3.5 rounded-lg bg-[#111] border border-[#222] text-[#ccc] text-sm hover:border-[#2a2a2a] transition-colors"
         >
-          <span className="text-[#666] text-xs">Produto:</span>
-          <span className="text-xs max-w-[140px] truncate">{product}</span>
+          <span className="text-[#666] text-xs">Kit:</span>
+          <span className="text-xs max-w-[140px] truncate">{currentKitLabel}</span>
           <ChevronDown size={12} className="text-[#666]" />
         </button>
-        {productOpen && (
+        {kitOpen && (
           <div className="absolute right-0 mt-1.5 w-56 max-h-72 overflow-y-auto rounded-lg bg-[#0f0f0f] border border-[#1e1e1e] py-1 shadow-lg z-50">
-            <button
-              key="__all__"
-              onClick={() => {
-                setProduct("Todos");
-                setProductOpen(false);
-              }}
-              className="w-full text-left px-3 py-1.5 text-sm text-[#ccc] hover:bg-[#161616] transition-colors"
-            >
-              Todos
-            </button>
-            {products.map((p) => (
+            {KIT_OPTIONS.map((o) => (
               <button
-                key={p}
+                key={o.value}
                 onClick={() => {
-                  setProduct(p);
-                  setProductOpen(false);
+                  setKit(o.value);
+                  setKitOpen(false);
                 }}
                 className="w-full text-left px-3 py-1.5 text-sm text-[#ccc] hover:bg-[#161616] transition-colors truncate"
               >
-                {p}
+                {o.label}
               </button>
             ))}
           </div>

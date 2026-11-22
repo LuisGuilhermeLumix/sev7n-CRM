@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useFilters } from './useFilters'
 import { startOfDayUTC, endOfDayUTC } from '@/lib/dates'
-
-const TABLE = 'oneclick_info_br_CRM'
+import { CRM_TABLE } from '@/lib/tables'
 
 export interface LeadRow {
   id: string
@@ -11,7 +10,7 @@ export interface LeadRow {
   name: string
   number: string
   email: string
-  product: string
+  kit: string
   utm_source: string
   recoveredValue: number
 }
@@ -30,7 +29,7 @@ function parseNum(val: any): number {
 }
 
 export function useLeads(search: string, page: number) {
-  const { dateFrom, dateTo, product } = useFilters()
+  const { dateFrom, dateTo, kit } = useFilters()
   const [rows, setRows] = useState<LeadRow[]>([])
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -43,16 +42,17 @@ export function useLeads(search: string, page: number) {
         const to = endOfDayUTC(dateTo)
 
         let q = supabase
-          .from(TABLE)
-          .select('id, created_at, name, number, email, product, utm_source, "($)"')
+          .from(CRM_TABLE)
+          .select('id, created_at, name, number, email, kit, utm_source, "($)"')
           .gte('created_at', from)
           .lte('created_at', to)
           .eq('Event', 'order_paid')
           .like('utm_source', '%WPP%')
+          .eq('upsell', false)
           .order('created_at', { ascending: false })
           .limit(200)
 
-        if (product && product !== 'Todos') q = q.eq('product', product)
+        if (kit !== 'Todos') q = q.eq('kit', kit)
         if (search) {
           q = q.or(
             `email.ilike.%${search}%,name.ilike.%${search}%,number.ilike.%${search}%`,
@@ -73,7 +73,7 @@ export function useLeads(search: string, page: number) {
             name: r.name ?? '—',
             number: r.number ?? '—',
             email: r.email ?? '—',
-            product: r.product ?? '—',
+            kit: r.kit ?? '—',
             utm_source: r.utm_source ?? '',
             recoveredValue: parseNum(r['($)']),
           }))
@@ -87,7 +87,7 @@ export function useLeads(search: string, page: number) {
       }
     }
     load()
-  }, [dateFrom, dateTo, search, page, product])
+  }, [dateFrom, dateTo, search, page, kit])
 
   return { rows, totalPages, loading }
 }

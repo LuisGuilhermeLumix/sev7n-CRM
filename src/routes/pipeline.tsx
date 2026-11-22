@@ -7,24 +7,23 @@ import { AppLayout } from "@/components/AppLayout";
 import { LEAD_EVENTS, PIPELINE_EVENT_CONFIG } from "@/lib/events";
 import { useFilters } from "@/hooks/useFilters";
 import { startOfDayUTC, endOfDayUTC } from "@/lib/dates";
+import { CRM_TABLE } from "@/lib/tables";
 
 export const Route = createFileRoute("/pipeline")({
   head: () => ({
     meta: [
-      { title: "Pipeline — Lumix - One Click CRM" },
+      { title: "Pipeline — Lumix - Sev7n CRM" },
       { name: "description", content: "Pipeline de leads em atendimento." },
     ],
   }),
   component: PipelinePage,
 });
 
-const TABLE = "oneclick_info_br_CRM";
-
 interface PipelineLead {
   id: number;
   name: string | null;
   number: string | null;
-  product: string | null;
+  kit: string | null;
   status: string | null;
   Event: string | null;
   created_at: string;
@@ -37,25 +36,11 @@ interface ColumnDef {
   bg: string;
 }
 
-const PRODUCT_COLORS = [
-  { bg: "#1e3a5f", text: "#80d7f8" },
-  { bg: "#3b1f5e", text: "#c084fc" },
-  { bg: "#1a4731", text: "#4ade80" },
-  { bg: "#4a1f1f", text: "#f87171" },
-  { bg: "#3d2e0a", text: "#fbbf24" },
-  { bg: "#1a3d4a", text: "#22d3ee" },
-  { bg: "#3d1a3d", text: "#f472b6" },
-  { bg: "#2d3d1a", text: "#a3e635" },
-];
-
-function getProductColor(product: string): { bg: string; text: string } {
-  let hash = 0;
-  for (let i = 0; i < product.length; i++) {
-    hash = product.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % PRODUCT_COLORS.length;
-  return PRODUCT_COLORS[index];
-}
+const KIT_COLORS: Record<string, { bg: string; text: string }> = {
+  "Kit 1": { bg: "#1e3a5f", text: "#80d7f8" },
+  "Kit 2": { bg: "#3b1f5e", text: "#c084fc" },
+  "Kit 3": { bg: "#1a4731", text: "#4ade80" },
+};
 
 const COLUMNS: ColumnDef[] = [
   { status: "primeiro_contato",   label: "Primeiro Contato",  color: "#888888", bg: "rgba(136,136,136,0.12)" },
@@ -114,8 +99,8 @@ function PipelinePage() {
       try {
         const rows = await fetchAllPaged<PipelineLead>((fromIdx, toIdx) => {
           let q = supabase
-            .from(TABLE)
-            .select('id, name, number, product, status, "Event", created_at')
+            .from(CRM_TABLE)
+            .select('id, name, number, kit, status, "Event", created_at')
             .not("status", "is", null)
             .neq("status", "")
             .neq("Event", "order_paid")
@@ -149,7 +134,7 @@ function PipelinePage() {
       .channel("pipeline-realtime")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: TABLE },
+        { event: "*", schema: "public", table: CRM_TABLE },
         (payload) => {
           const row = (payload.new ?? payload.old) as any;
           if (!row || row.Event === "order_paid") return;
@@ -172,7 +157,7 @@ function PipelinePage() {
               id: row.id,
               name: row.name ?? null,
               number: row.number ?? null,
-              product: row.product ?? null,
+              kit: row.kit ?? null,
               status: row.status,
               Event: row.Event ?? null,
               created_at: row.created_at,
@@ -405,6 +390,7 @@ function PipelineFilters({
 
 function LeadCard({ lead }: { lead: PipelineLead }) {
   const cfg = lead.Event ? PIPELINE_EVENT_CONFIG[lead.Event] : undefined;
+  const kitColor = lead.kit ? KIT_COLORS[lead.kit] : undefined;
   return (
     <div className="rounded-lg bg-[#101010] border border-[#1a1a1a] p-3 hover:border-[#2a2a2a] transition-colors">
       {cfg && (
@@ -429,16 +415,13 @@ function LeadCard({ lead }: { lead: PipelineLead }) {
       <div className="text-[11px] text-[#555] mt-0.5">
         {formatDatePtBR(lead.created_at)}
       </div>
-      {lead.product && (
+      {kitColor && (
         <div className="mt-2">
           <span
             className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium truncate max-w-full"
-            style={(() => {
-              const c = getProductColor(lead.product!);
-              return { backgroundColor: c.bg, color: c.text };
-            })()}
+            style={{ backgroundColor: kitColor.bg, color: kitColor.text }}
           >
-            {lead.product}
+            {lead.kit}
           </span>
         </div>
       )}

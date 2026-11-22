@@ -21,7 +21,7 @@ import { EVENT_COLORS, EVENT_LABELS, ORIGIN_COLORS, ORIGIN_LABELS } from "@/lib/
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Lumix - One Click CRM" },
+      { title: "Dashboard — Lumix - Sev7n CRM" },
       { name: "description", content: "Métricas de recuperação de vendas em tempo real." },
     ],
   }),
@@ -130,7 +130,7 @@ function DashboardPage() {
             variant="brand"
             loading={loading}
             value={formatCurrency(m.faturamentoFront)}
-            subInfo="order_paid sem utm_source WPP"
+            subInfo="order_paid sem WPP + upsells"
           />
           <MetricCard
             label="Comissão Lumix"

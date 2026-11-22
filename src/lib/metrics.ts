@@ -15,6 +15,8 @@ export interface CRMRow {
   number?: string | null
   email?: string | null
   product?: string | null
+  kit?: string | null
+  upsell?: boolean | null
   Event?: string | null
   utm_source?: string | null
   '($)'?: string | number | null
@@ -40,8 +42,9 @@ function hasStatus(r: CRMRow): boolean {
   return r.status !== null && r.status !== undefined && r.status !== ''
 }
 
+// Upsell nunca conta como venda recuperada: entra só no faturamento do front.
 function isWppOrder(r: CRMRow): boolean {
-  return r.Event === 'order_paid' && isWppSource(r.utm_source)
+  return r.Event === 'order_paid' && isWppSource(r.utm_source) && r.upsell !== true
 }
 
 export type EventBreakdown = Record<LeadEvent, number>
